@@ -57,14 +57,13 @@ class NetworkAlbert(object):
             	              "output_weights%s"%str(i), [2, hidden_size],
             	              initializer=tf.truncated_normal_initializer(stddev=0.02))        
                 output_bias = tf.get_variable(
-            	              "output_bias%s"%str(i), [2], initializer=tf.zeros_initializer())# 
-                logits = tf.matmul(output_layer, output_weights, transpose_b=True)
-                logits = tf.nn.bias_add(logits, output_bias)
+            	              "output_bias%s"%str(i), [2], initializer=tf.zeros_initializer())
+                logits = tf.nn.bias_add(tf.matmul(output_layer, output_weights, transpose_b=True), output_bias)
                 logits_num_label.append(logits)
                 one_hot_labels = tf.one_hot(self.label_ids[:,i], depth=2, dtype=tf.int32)
                 per_example_loss = tf.nn.softmax_cross_entropy_with_logits(labels=one_hot_labels,logits=logits)
                 loss_num_label.append(tf.reduce_mean(per_example_loss))
-            self.logits_num_label = tf.reshape(tf.stack(logits_num_label, 0), [-1, hp.num_labels, 2])
+            self.logits_num_label = tf.transpose(tf.stack(logits_num_label, 0),[1,0,2])
             self.loss_num_label = tf.stack(loss_num_label, 0)
             self.probabilities = tf.nn.sigmoid(self.logits_num_label)
     
